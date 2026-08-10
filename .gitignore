@@ -5,3 +5,6 @@ __pycache__/
 .env
 node_modules/
 dist/
+
+BUILD_LOG.md
+COMMAND_REFERENCE.md
