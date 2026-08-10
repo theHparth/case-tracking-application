@@ -1,4 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app import models
+from app.schemas import UserOut
+from app.auth import verify_password, create_access_token, get_current_user
 
 app = FastAPI(title="Case Tracking API")
 
@@ -6,3 +12,20 @@ app = FastAPI(title="Case Tracking API")
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.post("/token")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/me", response_model=UserOut)
+def read_current_user(current_user: models.User = Depends(get_current_user)):
+    return current_user
