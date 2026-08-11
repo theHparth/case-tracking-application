@@ -6,7 +6,15 @@ from app import models
 from app.schemas import UserOut, UserCreate, CaseCreate, CaseUpdate, CaseOut
 from app.auth import verify_password, create_access_token, get_current_user, require_admin, hash_password
 app = FastAPI(title="Case Tracking API")
-
+from fastapi.middleware.cors import CORSMiddleware
+    
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
